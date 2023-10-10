@@ -142,9 +142,26 @@ class DRV8874
 		{
 			return Action(DIR_STOP);
 		}
-
-		uint16_t GetCurrent()
+		
+		void ActionInvert()
 		{
+			switch(_channel.state)
+			{
+				case DIR_LEFT: { ActionRight(); break; }
+				case DIR_RIGHT: { ActionLeft(); break; }
+				default: { ActionRight(); break; }
+			}
+			
+			return;
+		}
+		
+		uint16_t GetCurrent(bool force = false)
+		{
+			if(force == true)
+			{
+				_channel.current.Set( _HW_GetCurrent(_channel.pin_current) );
+			}
+			
 			return _channel.current.Get();
 		}
 

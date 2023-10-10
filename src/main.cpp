@@ -26,8 +26,8 @@
 #include <About.h>
 #include <Leds.h>
 #include <OutputLogic.h>
+#include <TrunkHood.h>
 #include <CANLogic.h>
-#include <HBridge.h>
 
 // Peripheral variables
 ADC_HandleTypeDef hadc1;
@@ -139,7 +139,7 @@ int main(void)
 
     CANLib::Setup();
     Outputs::Setup();
-	HBridge::Setup();
+	TrunkHood::Setup();
 
     uint32_t current_time = HAL_GetTick();
     while (1)
@@ -150,7 +150,7 @@ int main(void)
 		Leds::Loop(current_time);
         CANLib::Loop(current_time);
         Outputs::Loop(current_time);
-		HBridge::Loop(current_time);
+		TrunkHood::Loop(current_time);
     }
 }
 

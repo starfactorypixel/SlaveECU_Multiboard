@@ -137,6 +137,8 @@ namespace CANLib
 				
 				can_frame.initialized = true;
 				can_frame.function_id = CAN_FUNC_EVENT_OK;
+				can_frame.data[0] = TrunkHood::driver2.GetState();
+				can_frame.raw_data_length = 2;
 				
 				return CAN_RESULT_CAN_FRAME;
 			});
@@ -165,6 +167,8 @@ namespace CANLib
 				
 				can_frame.initialized = true;
 				can_frame.function_id = CAN_FUNC_EVENT_OK;
+				can_frame.data[0] = TrunkHood::driver1.GetState();
+				can_frame.raw_data_length = 2;
 				
 				return CAN_RESULT_CAN_FRAME;
 			});
@@ -189,12 +193,12 @@ namespace CANLib
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
-				/*
-				TrunkHood::driver1.ActionInvert();
+				Outputs::outObj.SetToggle(1);
 				
 				can_frame.initialized = true;
 				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				*/
+				can_frame.data[0] = Outputs::outObj.GetState(1);
+				can_frame.raw_data_length = 2;
 				
 				return CAN_RESULT_CAN_FRAME;
 			});
@@ -202,7 +206,7 @@ namespace CANLib
 		
 		obj_leftdoor_control.RegisterFunctionAction([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 		{
-			// Action
+			Outputs::outObj.SetOn(2, 1000);
 			
 			can_frame.initialized = true;
 			can_frame.function_id = CAN_FUNC_EVENT_OK;
@@ -213,7 +217,7 @@ namespace CANLib
 		
 		obj_rightdoor_control.RegisterFunctionAction([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 		{
-			// Action
+			Outputs::outObj.SetOn(3, 1000);
 			
 			can_frame.initialized = true;
 			can_frame.function_id = CAN_FUNC_EVENT_OK;
@@ -241,12 +245,12 @@ namespace CANLib
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
-				/*
-				TrunkHood::driver1.ActionInvert();
+				Outputs::outObj.SetToggle(4);
 				
 				can_frame.initialized = true;
 				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				*/
+				can_frame.data[0] = Outputs::outObj.GetState(4);
+				can_frame.raw_data_length = 2;
 				
 				return CAN_RESULT_CAN_FRAME;
 			});
@@ -270,12 +274,12 @@ namespace CANLib
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
-				/*
-				TrunkHood::driver1.ActionInvert();
+				Outputs::outObj.SetToggle(5);
 				
 				can_frame.initialized = true;
 				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				*/
+				can_frame.data[0] = Outputs::outObj.GetState(5);
+				can_frame.raw_data_length = 2;
 				
 				return CAN_RESULT_CAN_FRAME;
 			});
@@ -300,12 +304,12 @@ namespace CANLib
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
-				/*
-				TrunkHood::driver1.ActionInvert();
+				Outputs::outObj.SetToggle(6);
 				
 				can_frame.initialized = true;
 				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				*/
+				can_frame.data[0] = Outputs::outObj.GetState(6);
+				can_frame.raw_data_length = 2;
 				
 				return CAN_RESULT_CAN_FRAME;
 			});

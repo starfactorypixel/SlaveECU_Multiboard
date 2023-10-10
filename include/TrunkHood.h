@@ -2,12 +2,15 @@
 
 #include  <DRV8874.h>
 
-namespace HBridge
+namespace TrunkHood
 {
 	static constexpr uint32_t CFG_RefVoltage = 3324000;		// Опорное напряжение, микровольты.
 	static constexpr uint16_t CFG_LoadResistance = 2490;	// Сопротивление шунта, омы.
 
+	// Драйвер актуатора капота
 	DRV8874 driver1( {GPIOB, GPIO_PIN_1},  {GPIOB, GPIO_PIN_0},  {GPIOB, GPIO_PIN_8}, {GPIOC, GPIO_PIN_15}, {GPIOA, ADC_CHANNEL_7} );
+	
+	// Драйвер актуатора багажника
 	DRV8874 driver2( {GPIOB, GPIO_PIN_10}, {GPIOB, GPIO_PIN_11}, {GPIOB, GPIO_PIN_9}, {GPIOC, GPIO_PIN_14}, {GPIOA, ADC_CHANNEL_0} );
 	
 	inline void Setup()

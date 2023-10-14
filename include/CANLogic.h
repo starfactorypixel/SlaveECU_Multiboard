@@ -105,11 +105,11 @@ namespace CANLib
 	CANObject<uint8_t, 1> obj_rearcamera_control(0x018A, CAN_TIMER_DISABLED, 300);
 
 	
-	// 0x018B	Port6Control
+	// 0x018B	HornControl
 	// set | toggle | request | event
 	// uint8_t	00 || FF	1 + 1	{ type[0] } or { type[0] data[1] }
-	// Управление портом 6
-	CANObject<uint8_t, 1> obj_port6_control(0x018B, CAN_TIMER_DISABLED, 300);
+	// Управление клаксоном.
+	CANObject<uint8_t, 1> obj_horn_control(0x018B, CAN_TIMER_DISABLED, 300);
 	
 	
 	inline void Setup()
@@ -271,7 +271,7 @@ namespace CANLib
 			});
 		
 
-		obj_port6_control
+		obj_horn_control
 			.RegisterFunctionSet([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
 				if(can_frame.data[0] == 0)
@@ -321,7 +321,7 @@ namespace CANLib
 		can_manager.RegisterObject(obj_rightdoor_control);
 		can_manager.RegisterObject(obj_cabinlight_control);
 		can_manager.RegisterObject(obj_rearcamera_control);
-		can_manager.RegisterObject(obj_port6_control);
+		can_manager.RegisterObject(obj_horn_control);
 
 		// Set versions data to block_info.
 		obj_block_info.SetValue(0, (About::board_type << 3 | About::board_ver), CAN_TIMER_TYPE_NORMAL);

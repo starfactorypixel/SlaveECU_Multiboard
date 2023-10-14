@@ -52,7 +52,7 @@ namespace Outputs
 			
 			for(uint8_t i = 1; i < CFG_PortCount+1; ++i)
 			{
-				Logger.PrintTopic("POUT").Printf("Port: %d, current: %5d;", i, outObj.GetCurrent(i)).PrintNewLine();
+				//Logger.PrintTopic("POUT").Printf("Port: %d, current: %5d;", i, outObj.GetCurrent(i)).PrintNewLine();
 			}
 		}
 		

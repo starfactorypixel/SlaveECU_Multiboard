@@ -17,11 +17,12 @@ class MovingAverage
 		
 		void Set(T1 value)
 		{
+			_data.sum = 0;
 			for(uint8_t i = 0; i < _size; ++i)
 			{
 				_data.buffer[i] = value;
+				_data.sum += value;
 			}
-			_data.sum = value;
 			
 			return;
 		}

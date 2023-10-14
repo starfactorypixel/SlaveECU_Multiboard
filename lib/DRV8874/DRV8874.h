@@ -10,7 +10,7 @@ class DRV8874
 	// Current mirror scaling factor from datasheet.
 	static constexpr float _current_scaling = 0.45f;
 	static constexpr uint32_t _adc_size = 4095;
-	static constexpr uint32_t _processing_tick = 25;
+	static constexpr uint32_t _processing_tick = 15;
 	
 	using error_event_t = void (*)(/*uint8_t id, */uint8_t code);
 	

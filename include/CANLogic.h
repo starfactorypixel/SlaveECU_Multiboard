@@ -117,14 +117,7 @@ namespace CANLib
 		obj_trunk_control
 			.RegisterFunctionSet([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
-				if(can_frame.data[0] == 0)
-				{
-					TrunkHood::driver2.ActionLeft();
-				}
-				else
-				{
-					TrunkHood::driver2.ActionRight();
-				}
+				TrunkHood::LogicSet(TrunkHood::driver2, TrunkHood::actuator_data[1], can_frame.data[0]);
 				
 				can_frame.initialized = true;
 				can_frame.function_id = CAN_FUNC_EVENT_OK;
@@ -133,11 +126,11 @@ namespace CANLib
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
-				TrunkHood::LogicOn(TrunkHood::driver2, TrunkHood::prev_state2, TrunkHood::state2);
+				TrunkHood::LogicToggle(TrunkHood::driver2, TrunkHood::actuator_data[1]);
 				
 				can_frame.initialized = true;
 				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				can_frame.data[0] = TrunkHood::state2;
+				can_frame.data[0] = TrunkHood::actuator_data[1].state;
 				can_frame.raw_data_length = 2;
 				
 				return CAN_RESULT_CAN_FRAME;
@@ -147,28 +140,7 @@ namespace CANLib
 		obj_hood_control
 			.RegisterFunctionSet([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
-				using namespace TrunkHood;
-
-				int8_t stick_position = can_frame.data[0];
-				
-				prev_state1 = state1;
-				if(stick_position > 0 && last_rx_position_1 <= 0)
-				{
-					driver1.ActionRight();
-					state1 = STATE_OPENING;
-				}
-				else if(stick_position < 0 && last_rx_position_1 >= 0)
-				{
-					driver1.ActionLeft();
-					state1 = STATE_CLOSING;
-				}
-				else if(stick_position == 0 && last_rx_position_1 != 0)
-				{
-					driver1.ActionStop();
-					state1 = STATE_STOPPED;
-				}
-				last_rx_position_1 = stick_position;
-				last_rx_time_1 = HAL_GetTick();
+				TrunkHood::LogicSet(TrunkHood::driver1, TrunkHood::actuator_data[0], can_frame.data[0]);
 				
 				can_frame.initialized = true;
 				can_frame.function_id = CAN_FUNC_EVENT_OK;
@@ -177,11 +149,11 @@ namespace CANLib
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
-				TrunkHood::LogicOn(TrunkHood::driver1, TrunkHood::prev_state1, TrunkHood::state1);
+				TrunkHood::LogicToggle(TrunkHood::driver1, TrunkHood::actuator_data[0]);
 				
 				can_frame.initialized = true;
 				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				can_frame.data[0] = TrunkHood::state1;
+				can_frame.data[0] = TrunkHood::actuator_data[0].state;
 				can_frame.raw_data_length = 2;
 				
 				return CAN_RESULT_CAN_FRAME;

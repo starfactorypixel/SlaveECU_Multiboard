@@ -70,6 +70,11 @@ class DRV8874
 		
 		void Action(direction_t dir)
 		{
+			if(dir != _channel.state)
+			{
+				_channel.timerun = HAL_GetTick();
+			}
+			
 			switch(dir)
 			{
 				case DIR_OFF:
@@ -118,7 +123,6 @@ class DRV8874
 					break;
 				}
 			}
-			_channel.timerun = HAL_GetTick();
 			
 			return;
 		}

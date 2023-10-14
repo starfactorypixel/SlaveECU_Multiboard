@@ -60,14 +60,14 @@ namespace CANLib
 	// set | toggle | request | event
 	// uint8_t	0 .. 255	1 + 1	{ type[0] } or { type[0] data[1] }
 	// Управление багажником.
-	CANObject<uint8_t, 1> obj_trunk_control(0x0184, CAN_TIMER_DISABLED, 300);
+	CANObject<int8_t, 1> obj_trunk_control(0x0184, CAN_TIMER_DISABLED, 300);
 
 
 	// 0x0185	HoodControl
 	// set | toggle | request | event
 	// uint8_t	0 .. 255	1 + 1	{ type[0] } or { type[0] data[1] }
 	// Управление капотом.
-	CANObject<uint8_t, 1> obj_hood_control(0x0185, CAN_TIMER_DISABLED, 300);
+	CANObject<int8_t, 1> obj_hood_control(0x0185, CAN_TIMER_DISABLED, 300);
 
 
 	// 0x0186	SecElecControl
@@ -147,14 +147,28 @@ namespace CANLib
 		obj_hood_control
 			.RegisterFunctionSet([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
-				if(can_frame.data[0] == 0)
+				using namespace TrunkHood;
+
+				int8_t stick_position = can_frame.data[0];
+				
+				prev_state1 = state1;
+				if(stick_position > 0 && last_rx_position_1 <= 0)
 				{
-					TrunkHood::driver1.ActionLeft();
+					driver1.ActionRight();
+					state1 = STATE_OPENING;
 				}
-				else
+				else if(stick_position < 0 && last_rx_position_1 >= 0)
 				{
-					TrunkHood::driver1.ActionRight();
+					driver1.ActionLeft();
+					state1 = STATE_CLOSING;
 				}
+				else if(stick_position == 0 && last_rx_position_1 != 0)
+				{
+					driver1.ActionStop();
+					state1 = STATE_STOPPED;
+				}
+				last_rx_position_1 = stick_position;
+				last_rx_time_1 = HAL_GetTick();
 				
 				can_frame.initialized = true;
 				can_frame.function_id = CAN_FUNC_EVENT_OK;

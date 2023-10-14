@@ -17,6 +17,11 @@ namespace TrunkHood
 	state_t state2;
 	state_t prev_state2;
 
+	int8_t last_rx_position_1;
+	int8_t last_rx_position_2;
+
+	uint32_t last_rx_time_1;
+	uint32_t last_rx_time_2;
 
 	// Драйвер актуатора капота
 	DRV8874 driver1( {GPIOB, GPIO_PIN_1},  {GPIOB, GPIO_PIN_0},  {GPIOB, GPIO_PIN_8}, {GPIOC, GPIO_PIN_15}, {GPIOA, ADC_CHANNEL_7} );
@@ -124,12 +129,16 @@ namespace TrunkHood
 				driver.ActionOff();
 				prev_state = state;
 				state = STATE_CLOSED;
+
+				last_rx_position_1 = 0;
 			}
 			if(state == STATE_OPENING)
 			{
 				driver.ActionOff();
 				prev_state = state;
 				state = STATE_OPENED;
+
+				last_rx_position_1 = 0;
 			}
 		}
 		
@@ -169,6 +178,19 @@ namespace TrunkHood
 			LogicOff(driver1, prev_state1, state1);
 			LogicOff(driver2, prev_state2, state2);
 		}
+		
+		
+		
+		if(current_time - last_rx_time_1 > 500 && (state1 == STATE_OPENING || state1 == STATE_CLOSING) && (last_rx_position_1 != -100 || last_rx_position_1 != 100))
+		{
+			driver1.ActionStop();
+			prev_state1 = state1;
+			state1 = STATE_STOPPED;
+
+			last_rx_position_1 = 0;
+		}
+		
+		
 		
 		current_time = HAL_GetTick();
 

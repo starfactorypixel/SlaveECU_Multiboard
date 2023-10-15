@@ -120,7 +120,7 @@ namespace TrunkHood
 
 	void TimeLogicToggleOff(DRV8874 &driver, actuator_data_t &data)
 	{
-		if(driver.GetCurrent(true) < CFG_IdleCurrent)
+		if(driver.GetCurrent() < CFG_IdleCurrent)
 		{
 			if(data.state == STATE_CLOSING)
 			{

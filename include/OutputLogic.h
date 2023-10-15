@@ -26,7 +26,7 @@ namespace Outputs
 		outObj.AddPort( {GPIOB, GPIO_PIN_14, ADC_CHANNEL_4, 5000} );
 		outObj.AddPort( {GPIOB, GPIO_PIN_13, ADC_CHANNEL_3, 5000} );
 		outObj.AddPort( {GPIOB, GPIO_PIN_12, ADC_CHANNEL_2, 5000} );
-		outObj.AddPort( {GPIOB, GPIO_PIN_2, ADC_CHANNEL_1, 5000} );
+		outObj.AddPort( {GPIOB, GPIO_PIN_2, ADC_CHANNEL_1, 10000} );
 		outObj.Init();
 
 		//outObj.On(4);

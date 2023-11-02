@@ -18,6 +18,14 @@ namespace CANLib
 	/// @brief The size of CANManager's internal CAN frame buffer
 	static constexpr uint8_t CFG_CANFrameBufferSize = 16;
 
+	enum HardwareErrorCodes : uint8_t
+	{
+		ERROR_CODE_HW_NONE = 0x00,
+		ERROR_CODE_HW_SECONDARY_ELECTRONICS_ERROR = 0x01,
+		ERROR_CODE_HW_CABIN_LIGHT_ERROR = 0x02,
+		ERROR_CODE_HW_REAR_CAMERA_ERROR = 0x03,
+		ERROR_CODE_HW_HORN_ERROR = 0x04,
+	};
 
 	//*********************************************************************
 	// CAN Manager & CAN Object configuration
@@ -111,6 +119,10 @@ namespace CANLib
 	// Управление клаксоном.
 	CANObject<uint8_t, 1> obj_horn_control(0x018B, CAN_TIMER_DISABLED, 300);
 	
+	inline uint8_t on_off_validator(uint8_t value)
+	{
+		return (value > 0) ? 0xFF : 0;
+	}
 	
 	inline void Setup()
 	{
@@ -118,22 +130,16 @@ namespace CANLib
 			.RegisterFunctionSet([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
 				TrunkHood::LogicSet(TrunkHood::driver2, TrunkHood::actuator_data[1], can_frame.data[0]);
-				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				
-				return CAN_RESULT_CAN_FRAME;
+				obj_trunk_control.SetValue(0, can_frame.data[0], CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
+
+				return CAN_RESULT_IGNORE;
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
 				TrunkHood::LogicToggle(TrunkHood::driver2, TrunkHood::actuator_data[1]);
-				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				can_frame.data[0] = TrunkHood::actuator_data[1].state;
-				can_frame.raw_data_length = 2;
-				
-				return CAN_RESULT_CAN_FRAME;
+				obj_trunk_control.SetValue(0, TrunkHood::actuator_data[1].state, CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
+
+				return CAN_RESULT_IGNORE;
 			});
 		
 		
@@ -141,52 +147,48 @@ namespace CANLib
 			.RegisterFunctionSet([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
 				TrunkHood::LogicSet(TrunkHood::driver1, TrunkHood::actuator_data[0], can_frame.data[0]);
-				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				
-				return CAN_RESULT_CAN_FRAME;
+				obj_hood_control.SetValue(0, can_frame.data[0], CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
+
+				return CAN_RESULT_IGNORE;
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
 				TrunkHood::LogicToggle(TrunkHood::driver1, TrunkHood::actuator_data[0]);
-				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				can_frame.data[0] = TrunkHood::actuator_data[0].state;
-				can_frame.raw_data_length = 2;
-				
-				return CAN_RESULT_CAN_FRAME;
+				obj_hood_control.SetValue(0, TrunkHood::actuator_data[0].state, CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
+
+				return CAN_RESULT_IGNORE;
 			});
 		
 		
 		obj_secelec_control
 			.RegisterFunctionSet([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
+				bool result = true;
 				if(can_frame.data[0] == 0)
 				{
 					Outputs::outObj.SetOff(1);
 				}
 				else
 				{
-					Outputs::outObj.SetOn(1);
+					result = Outputs::outObj.SetOn(1);
+				}
+
+				if (result)
+				{
+					obj_secelec_control.SetValue(0, on_off_validator(can_frame.data[0]), CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
+					return CAN_RESULT_IGNORE;
 				}
 				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				
-				return CAN_RESULT_CAN_FRAME;
+				error.error_section = ERROR_SECTION_HARDWARE;
+				error.error_code = ERROR_CODE_HW_SECONDARY_ELECTRONICS_ERROR;
+				return CAN_RESULT_ERROR;
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
 				Outputs::outObj.SetToggle(1);
+				obj_secelec_control.SetValue(0, Outputs::outObj.GetState(1), CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
 				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				can_frame.data[0] = Outputs::outObj.GetState(1);
-				can_frame.raw_data_length = 2;
-				
-				return CAN_RESULT_CAN_FRAME;
+				return CAN_RESULT_IGNORE;
 			});
 		
 		
@@ -215,89 +217,95 @@ namespace CANLib
 		obj_cabinlight_control
 			.RegisterFunctionSet([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
+				bool result = true;
 				if(can_frame.data[0] == 0)
 				{
 					Outputs::outObj.SetOff(4);
 				}
 				else
 				{
-					Outputs::outObj.SetOn(4);
+					result = Outputs::outObj.SetOn(4);
+				}
+
+				if (result)
+				{
+					obj_cabinlight_control.SetValue(0, on_off_validator(can_frame.data[0]), CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
+					return CAN_RESULT_IGNORE;
 				}
 				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				
-				return CAN_RESULT_CAN_FRAME;
+				error.error_section = ERROR_SECTION_HARDWARE;
+				error.error_code = ERROR_CODE_HW_CABIN_LIGHT_ERROR;
+				return CAN_RESULT_ERROR;
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
 				Outputs::outObj.SetToggle(4);
+				obj_cabinlight_control.SetValue(0, Outputs::outObj.GetState(4), CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
 				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				can_frame.data[0] = Outputs::outObj.GetState(4);
-				can_frame.raw_data_length = 2;
-				
-				return CAN_RESULT_CAN_FRAME;
+				return CAN_RESULT_IGNORE;
 			});
 		
 		obj_rearcamera_control
 			.RegisterFunctionSet([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
+				bool result = true;
 				if(can_frame.data[0] == 0)
 				{
 					Outputs::outObj.SetOff(5);
 				}
 				else
 				{
-					Outputs::outObj.SetOn(5);
+					result = Outputs::outObj.SetOn(5);
+				}
+
+				if (result)
+				{
+					obj_rearcamera_control.SetValue(0, on_off_validator(can_frame.data[0]), CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
+					return CAN_RESULT_IGNORE;
 				}
 				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				
-				return CAN_RESULT_CAN_FRAME;
+				error.error_section = ERROR_SECTION_HARDWARE;
+				error.error_code = ERROR_CODE_HW_REAR_CAMERA_ERROR;
+				return CAN_RESULT_ERROR;
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
 				Outputs::outObj.SetToggle(5);
+				obj_rearcamera_control.SetValue(0, Outputs::outObj.GetState(5), CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
 				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				can_frame.data[0] = Outputs::outObj.GetState(5);
-				can_frame.raw_data_length = 2;
-				
-				return CAN_RESULT_CAN_FRAME;
+				return CAN_RESULT_IGNORE;
 			});
 		
 
 		obj_horn_control
 			.RegisterFunctionSet([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
+				bool result = true;
 				if(can_frame.data[0] == 0)
 				{
 					Outputs::outObj.SetOff(6);
 				}
 				else
 				{
-					Outputs::outObj.SetOn(6);
+					result = Outputs::outObj.SetOn(6);
+				}
+
+				if (result)
+				{
+					obj_horn_control.SetValue(0, on_off_validator(can_frame.data[0]), CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
+					return CAN_RESULT_IGNORE;
 				}
 				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				
-				return CAN_RESULT_CAN_FRAME;
+				error.error_section = ERROR_SECTION_HARDWARE;
+				error.error_code = ERROR_CODE_HW_HORN_ERROR;
+				return CAN_RESULT_ERROR;
 			})
 			.RegisterFunctionToggle([](can_frame_t &can_frame, can_error_t &error) -> can_result_t
 			{
 				Outputs::outObj.SetToggle(6);
+				obj_horn_control.SetValue(0, Outputs::outObj.GetState(6), CAN_TIMER_TYPE_NONE, CAN_EVENT_TYPE_NORMAL);
 				
-				can_frame.initialized = true;
-				can_frame.function_id = CAN_FUNC_EVENT_OK;
-				can_frame.data[0] = Outputs::outObj.GetState(6);
-				can_frame.raw_data_length = 2;
-				
-				return CAN_RESULT_CAN_FRAME;
+				return CAN_RESULT_IGNORE;
 			});
 		
 		
